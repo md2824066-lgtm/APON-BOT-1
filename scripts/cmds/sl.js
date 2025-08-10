@@ -5,7 +5,7 @@ module.exports = {
   config: {
     name: "sl",
     version: "1.3",
-    author: "ᴀɴɪᴋ_🐢",
+    author: "APON",
     role: 2,
     shortDescription: "Toggle selfListen instantly",
     longDescription: "Enable or disable bot's ability to listen to its own messages without restart",
