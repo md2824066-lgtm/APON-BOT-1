@@ -42,7 +42,7 @@ module.exports = {
       const stylishText = `
 ✨ 𝒀𝒐𝒖𝒓 𝒓𝒂𝒏𝒅𝒐𝒎 𝒂𝒏𝒊𝒎𝒆 𝒘𝒂𝒊𝒇𝒖 𝒊𝒔 𝒉𝒆𝒓𝒆! ✨
 
-~ ᴏᴡɴᴇʀ Sᴀɪᴍ`;
+~ ᴏᴡɴᴇʀ APON`;
 
       api.sendMessage({
         body: stylishText,
