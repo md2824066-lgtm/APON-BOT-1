@@ -1,136 +1,143 @@
-const fs = require("fs");
-const { getTime, drive } = global.utils;
-if (!global.temp.welcomeEvent) global.temp.welcomeEvent = {};
+const { createCanvas, loadImage, registerFont } = require("canvas");
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
   config: {
     name: "welcome",
-    version: "2.1",
-    author: "NTKhang + Modified by You",
+    version: "2.0",
+    author: "Ew'r Saim",
     category: "events"
   },
 
-  langs: {
-    en: {
-      session1: "morning",
-      session2: "noon",
-      session3: "afternoon",
-      session4: "evening",
-      multiple1: "you",
-      multiple2: "you guys",
-      defaultWelcomeMessage:
-`🥰 𝙰𝚂𝚂𝙰𝙻𝙰𝙼𝚄𝙰𝙻𝙰𝙸𝙺𝚄𝙼 {userNameTag}, 𝚠𝚎𝚕𝚌𝚘𝚖𝚎 {multiple} 𝚃𝚘 𝙾𝚞𝚛 『{boxName}』 𝙶𝚛𝚘𝚞𝚙😊
-• 𝙸 𝙷𝚘𝚙𝚎 𝚈𝚘𝚞 𝚆𝚒𝚕𝚕 𝙵𝚘𝚕𝚕𝚘𝚠 𝙾𝚞𝚛 𝙶𝚛𝚘𝚞𝚙 𝚁𝚞𝚕𝚎𝚜
-• {prefix}rules 𝚏𝚘𝚛 𝙶𝚛𝚘𝚞𝚙 𝚁𝚞𝚕𝚎𝚜
-• {prefix}help 𝙵𝚘𝚛 𝙰𝚕𝚕 𝙲𝚘𝚖𝚖𝚊𝚗𝚍𝚜
-
-• 𝚈𝚘𝚞 𝙰𝚛𝚎 𝚃𝚑𝚎 {memberIndex} 𝙼𝚎𝚖𝚋𝚎𝚛{memberPlural} 𝚒𝚗 𝙾𝚞𝚛 𝙶𝚛𝚘𝚞𝚙
-• 𝙰𝚍𝚍𝚎𝚍 𝙱𝚢: {inviterName}`,
-
-      botJoinMessage:
-`✨ 𝙷𝙴𝙻𝙻𝙾! 𝙸'𝚖 𝑆𝑎𝑘𝑢𝑟𝑎 Bot & 𝙸'𝚅𝙴 𝙹𝚄𝚂𝚃 𝙹𝙾𝙸𝙽𝙴𝙳 『{boxName}』 𝙶𝚁𝙾𝚄𝚄𝙿!
-
-➤ 𝙲𝚘𝚖𝚖𝚊𝚗𝚍 𝙻𝚒𝚜𝚝: {prefix}help 
-➤ 𝙶𝚛𝚘𝚞𝚙 𝚁𝚞𝚕𝚎𝚜: {prefix}rules
-
-𝙿𝚕𝚎𝚊𝚜𝚎 𝚏𝚘𝚕𝚕𝚘𝚠 𝚐𝚛𝚘𝚞𝚙 𝚛𝚞𝚕𝚎𝚜 𝚊𝚗𝚍 𝚋𝚎 𝚗𝚒𝚌𝚎 𝚝𝚘 𝚎𝚟𝚎𝚛𝚢𝚘𝚗𝚎.
-
-**𝙻𝚎𝚝'𝚜 𝚑𝚊𝚟𝚎 𝚏𝚞𝚗 𝚝𝚘𝚐𝚎𝚝𝚑𝚎𝚛!**  
-- 𝙰𝚞𝚝𝚘 𝚂𝚞𝚙𝚙𝚘𝚛𝚝 𝙼𝚘𝚍𝚎 𝙰𝚌𝚝𝚒𝚟𝚊𝚝𝚎𝚍.`
-    }
-  },
-
-  onStart: async ({ threadsData, message, event, api, getLang, usersData }) => {
+  onStart: async function ({ api, event }) {
     if (event.logMessageType !== "log:subscribe") return;
 
-    const { threadID } = event;
-    const prefix = global.utils.getPrefix(threadID);
-    const dataAddedParticipants = event.logMessageData.addedParticipants;
-
+    const { threadID, logMessageData, senderID } = event;
+    const newUsers = logMessageData.addedParticipants;
     const botID = api.getCurrentUserID();
-    const threadData = await threadsData.get(threadID);
-    const threadName = threadData.threadName;
 
-    if (dataAddedParticipants.some(u => u.userFbId == botID)) {
-      const botJoinMsg = getLang("botJoinMessage")
-        .replace(/{boxName}/g, threadName)
-        .replace(/{prefix}/g, prefix);
+    if (newUsers.some(u => u.userFbId === botID)) return;
 
-      // ===== Set Nickname from config.json =====
+    const threadInfo = await api.getThreadInfo(threadID);
+    const groupName = threadInfo.threadName;
+    const memberCount = threadInfo.participantIDs.length;
+
+    for (const user of newUsers) {
+      const userId = user.userFbId;
+      const fullName = user.fullName;
+
+      const FONT_NAME = "ModernNoirBold";
+      const FONT_URL = "https://github.com/Saim12678/Saim/blob/693ceed2f392ac4fe6f98f77b22344f6fc5ac9f8/fonts/tt-modernoir-trial.bold.ttf?raw=true";
+
+      const TEXT_STYLES = {
+        name: { fontSize: 64, y: 345 },
+        group: { fontSize: 42, y: 400 },
+        member: { fontSize: 38, y: 447 }
+      };
+
+      const avatarSize = 240;
+
+      const backgrounds = [
+        "https://files.catbox.moe/cj68oa.jpg",
+        "https://files.catbox.moe/0n8mmb.jpg",
+        "https://files.catbox.moe/hvynlb.jpg",
+        "https://files.catbox.moe/leyeuq.jpg",
+        "https://files.catbox.moe/7ufcfb.jpg",
+        "https://files.catbox.moe/y78bmv.jpg"
+      ];
+      const bgUrl = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+
+      const tmp = path.join(__dirname, "..", "cache");
+      await fs.ensureDir(tmp);
+
+      const avatarPath = path.join(tmp, `avt_${userId}.png`);
+      const bgPath = path.join(tmp, "bg.jpg");
+      const outputPath = path.join(tmp, `welcome_${userId}.png`);
+      const fontPath = path.join(tmp, `${FONT_NAME}.ttf`);
+
       try {
-        const configData = JSON.parse(fs.readFileSync("config.json", "utf-8"));
-        const nickname = configData.botNickname || "Bot";
+        if (!fs.existsSync(fontPath)) {
+          const fontRes = await axios.get(FONT_URL, { responseType: "arraybuffer" });
+          fs.writeFileSync(fontPath, fontRes.data);
+        }
+        registerFont(fontPath, { family: FONT_NAME });
 
-        await api.changeNickname(nickname, threadID, botID);
+        const avatarRes = await axios.get(
+          `https://graph.facebook.com/${userId}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`,
+          { responseType: "arraybuffer" }
+        );
+        fs.writeFileSync(avatarPath, avatarRes.data);
+
+        const bgRes = await axios.get(bgUrl, { responseType: "arraybuffer" });
+        fs.writeFileSync(bgPath, bgRes.data);
+
+        const avatar = await loadImage(avatarPath);
+        const bg = await loadImage(bgPath);
+
+        const W = 983, H = 480;
+        const canvas = createCanvas(W, H);
+        const ctx = canvas.getContext("2d");
+
+        ctx.drawImage(bg, 0, 0, W, H);
+
+        const ax = (W - avatarSize) / 2;
+        const ay = 30;
+
+        ctx.beginPath();
+        ctx.arc(W / 2, ay + avatarSize / 2, avatarSize / 2 + 6, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(W / 2, ay + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(avatar, ax, ay, avatarSize, avatarSize);
+        ctx.restore();
+
+        function draw3DText(ctx, text, x, y, fontSize) {
+          ctx.font = `${fontSize}px ${FONT_NAME}`;
+          ctx.textAlign = "center";
+          const offsets = [[4, 4], [3.5, 3.5], [3, 3], [2.5, 2.5], [2, 2], [1.5, 1.5], [1, 1]];
+          ctx.fillStyle = "#000000";
+          for (let [dx, dy] of offsets) ctx.fillText(text, x + dx, y + dy);
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(text, x, y);
+        }
+
+        draw3DText(ctx, `{ ${fullName} }`, W / 2, TEXT_STYLES.name.y, TEXT_STYLES.name.fontSize);
+        draw3DText(ctx, groupName, W / 2, TEXT_STYLES.group.y, TEXT_STYLES.group.fontSize);
+        draw3DText(ctx, `You're the ${memberCount} member on this group`, W / 2, TEXT_STYLES.member.y, TEXT_STYLES.member.fontSize);
+
+        const buffer = canvas.toBuffer("image/png");
+        fs.writeFileSync(outputPath, buffer);
+
+        const timeStr = new Date().toLocaleString("en-BD", {
+          timeZone: "Asia/Dhaka",
+          hour: "2-digit", minute: "2-digit", second: "2-digit",
+          weekday: "long", year: "numeric", month: "2-digit", day: "2-digit",
+          hour12: true,
+        });
+
+        await api.sendMessage({
+          body:
+            `‎𝐇𝐞𝐥𝐥𝐨 ${fullName}\n` +
+            `𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐭𝐨 ${groupName}\n` +
+            `𝐘𝐨𝐮'𝐫𝐞 𝐭𝐡𝐞 ${memberCount} 𝐦𝐞𝐦𝐛𝐞𝐫 𝐨𝐧 𝐭𝐡𝐢𝐬 𝐠𝐫𝐨𝐮𝐩, 𝐩𝐥𝐞𝐚𝐬𝐞 𝐞𝐧𝐣𝐨𝐲 🎉\n` +
+            `━━━━━━━━━━━━━━━━\n` +
+            `📅 ${timeStr}`,
+          attachment: fs.createReadStream(outputPath),
+          mentions: [{ tag: fullName, id: userId }]
+        }, threadID);
+
+        fs.unlinkSync(avatarPath);
+        fs.unlinkSync(bgPath);
+        fs.unlinkSync(outputPath);
       } catch (err) {
-        console.error("Failed to set nickname:", err);
+        console.error("❌ Error generating welcome image:", err);
       }
-      // =========================================
-
-      return message.send(botJoinMsg);
     }
-
-    if (!global.temp.welcomeEvent[threadID])
-      global.temp.welcomeEvent[threadID] = {
-        joinTimeout: null,
-        dataAddedParticipants: []
-      };
-
-    global.temp.welcomeEvent[threadID].dataAddedParticipants.push(...dataAddedParticipants);
-    clearTimeout(global.temp.welcomeEvent[threadID].joinTimeout);
-
-    global.temp.welcomeEvent[threadID].joinTimeout = setTimeout(async function () {
-      const addedUsers = global.temp.welcomeEvent[threadID].dataAddedParticipants;
-      const dataBanned = threadData.data.banned_ban || [];
-      const mentions = [];
-      const names = [];
-
-      for (const user of addedUsers) {
-        if (dataBanned.some(ban => ban.id == user.userFbId)) continue;
-        names.push(user.fullName);
-        mentions.push({ tag: user.fullName, id: user.userFbId });
-      }
-
-      if (names.length === 0) return;
-
-      const welcomeMsgTemplate = threadData.data.welcomeMessage || getLang("defaultWelcomeMessage");
-      const memberInfo = await api.getThreadInfo(threadID);
-      const memberCount = memberInfo.participantIDs.length;
-
-      const memberIndexList = [];
-      for (let i = memberCount - names.length + 1; i <= memberCount; i++) {
-        memberIndexList.push(i + getNumberSuffix(i));
-      }
-
-      const inviterName = await usersData.getName(event.author);
-      const form = {
-        body: welcomeMsgTemplate
-          .replace(/\{userNameTag\}/g, names.join(", "))
-          .replace(/\{multiple\}/g, names.length > 1 ? getLang("multiple2") : getLang("multiple1"))
-          .replace(/\{boxName\}/g, threadName)
-          .replace(/\{memberIndex\}/g, memberIndexList.join(", "))
-          .replace(/\{memberPlural\}/g, names.length > 1 ? "s" : "")
-          .replace(/\{inviterName\}/g, inviterName)
-          .replace(/\{prefix\}/g, prefix),
-        mentions
-      };
-
-      if (threadData.data.welcomeAttachment) {
-        const files = threadData.data.welcomeAttachment;
-        const attachments = files.map(file => drive.getFile(file, "stream"));
-        form.attachment = (await Promise.allSettled(attachments))
-          .filter(r => r.status === "fulfilled")
-          .map(r => r.value);
-      }
-
-      message.send(form);
-      delete global.temp.welcomeEvent[threadID];
-    }, 1500);
   }
 };
-
-function getNumberSuffix(n) {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return (s[(v - 20) % 10] || s[v] || s[0]);
-  }
