@@ -69,7 +69,7 @@ module.exports = {
       categories[category].push(name);
     }
 
-    const helpListImages = ["https://files.catbox.moe/d6brz0.png"];
+    const helpListImages = ["https://files.catbox.moe/412ajx.jpg"];
     const helpListImage = helpListImages[Math.floor(Math.random() * helpListImages.length)];
 
     const rawInput = args.join(" ").trim();
@@ -77,7 +77,7 @@ module.exports = {
     // Show full help list if no argument
     if (!rawInput) {
       let msg = "╔═══════════════╗\n";
-      msg += "    𝐒𝐀𝐊𝐔𝐑𝐀 𝐇𝐄𝐋𝐏 𝐌𝐄𝐍𝐔\n";
+      msg += "    APON HELP MENU\n";
       msg += "╚═══════════════╝\n";
 
       for (const category of Object.keys(categories).sort()) {
@@ -95,7 +95,7 @@ module.exports = {
       msg += "┍━━━[𝙸𝙽𝙵𝚁𝙾𝙼]━━━◊\n";
       msg += `┋➥𝚃𝙾𝚃𝙰𝙻 𝙲𝙼𝙳: [${commands.size}]\n`;
       msg += `┋➥𝙿𝚁𝙴𝙵𝙸𝚇: ${prefix}\n`;
-      msg += `┋𝙾𝚆𝙽𝙴𝚁: Ew'r Saim\n`;
+      msg += `┋𝙾𝚆𝙽𝙴𝚁: APON\n`;
       msg += "┕━━━━━━━━━━━◊";
 
       return message.reply({
