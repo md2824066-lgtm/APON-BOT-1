@@ -6,7 +6,7 @@ module.exports = {
   config: {
     name: "aniwall",
     version: "1.0.2",
-    author: "ChatGPT Updated",
+    author: "Ew'r Saim",
     role: 0,
     countDown: 5,
     shortDescription: {
