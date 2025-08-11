@@ -13,12 +13,12 @@ module.exports = {
   },
 
   onStart: async function ({ api, event }) {
-    const ownerName = "Md Apon";
+    const ownerName = "Apon DiCaprio";
     const ownerFB = "https://facebook.com/apon.dicaprio";
     const contact = "+8801765144###"; // Replace ### with actual digits
-    const botName = "My Messenger Goat Bot";
+    const botName = "APON Messenger Goat Bot";
     const version = "1.0";
-    const prefix = "!";
+    const prefix = "7";
     const groupLink = "No Group";
 
     const message = 
