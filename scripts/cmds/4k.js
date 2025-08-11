@@ -7,7 +7,7 @@ module.exports = {
     aliases: ["upscale"],
     version: "1.1",
     role: 0,
-    author: "Apon_dicaprio",
+    author: "Fahim_Noob",
     countDown: 5,
     longDescription: "Upscale images to 4K resolution.",
     category: "image",
