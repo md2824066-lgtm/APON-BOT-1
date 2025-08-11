@@ -25,7 +25,7 @@ module.exports.run = async function ({ event, api, Threads }) {
             const picURL = `https://graph.facebook.com/${id}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
             const avatar = await loadImage(picURL);
 
-            // তোমার দেওয়া ব্যাকগ্রাউন্ড ফ্রেম
+            //
             const gifFrames = [
                 "https://files.catbox.moe/b7xfaz.jpg",
                 "https://files.catbox.moe/ed2c0g.jpg"
@@ -40,7 +40,7 @@ module.exports.run = async function ({ event, api, Threads }) {
 
             encoder.start();
             encoder.setRepeat(0);
-            encoder.setDelay(500); // প্রতি ফ্রেম 0.5 সেকেন্ড
+            encoder.setDelay(500); //
             encoder.setQuality(10);
 
             for (let bgURL of gifFrames) {
