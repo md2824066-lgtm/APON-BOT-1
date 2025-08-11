@@ -40,12 +40,12 @@ module.exports = {
       const avatarSize = 240;
 
       const backgrounds = [
-        "https://files.catbox.moe/cj68oa.jpg",
+        "https://files.catbox.moe/b7xfaz.jpg",
         "https://files.catbox.moe/0n8mmb.jpg",
         "https://files.catbox.moe/hvynlb.jpg",
         "https://files.catbox.moe/leyeuq.jpg",
         "https://files.catbox.moe/7ufcfb.jpg",
-        "https://files.catbox.moe/y78bmv.jpg"
+        "https://files.catbox.moe/gagvyh.jpg"
       ];
       const bgUrl = backgrounds[Math.floor(Math.random() * backgrounds.length)];
 
