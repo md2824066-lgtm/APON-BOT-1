@@ -18,7 +18,7 @@ module.exports = {
     const contact = "+8801765144###"; // Replace ### with actual digits
     const botName = "APON Messenger Goat Bot";
     const version = "1.0";
-    const prefix = "7";
+    const prefix = "/";
     const groupLink = "No Group";
 
     const message = 
