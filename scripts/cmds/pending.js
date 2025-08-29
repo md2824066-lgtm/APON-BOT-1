@@ -1,18 +1,12 @@
 module.exports = {
   config: {
     name: "pending",
-    version: "1.0",
-    author: "S A I M",
+    version: "1.1",
+    author: "Ew'r Saim & GPT",
     countDown: 5,
     role: 2,
-    shortDescription: {
-      vi: "",
-      en: ""
-    },
-    longDescription: {
-      vi: "",
-      en: ""
-    },
+    shortDescription: { vi: "", en: "" },
+    longDescription: { vi: "", en: "" },
     category: "Admin"
   },
 
@@ -20,10 +14,10 @@ module.exports = {
     en: {
       invaildNumber: "%1 is not a valid number",
       cancelSuccess: "Refused %1 thread!",
-      approveSuccess: "Approved successfully %1 threads!",
-      cantGetPendingList: "Can't get the pending list!",
-      returnListPending: "»「PENDING」«❮ The number of threads to approve: %1 ❯\n\n%2",
-      returnListClean: "「PENDING」There is no thread in the pending list"
+      approveSuccess: "✅ Successfully approved %1 thread(s)!",
+      cantGetPendingList: "❌ Can't get the pending list!",
+      returnListPending: "💎─────「 PENDING LIST 」─────💎\nTotal threads pending: %1\n\n%2",
+      returnListClean: "✅ There is no pending thread!"
     }
   },
 
@@ -32,8 +26,9 @@ module.exports = {
     const { body, threadID, messageID } = event;
     let count = 0;
 
+    // Cancel pending threads
     if ((isNaN(body) && body.indexOf("c") == 0) || body.indexOf("cancel") == 0) {
-      const index = (body.slice(1)).split(/\s+/);
+      const index = body.slice(1).split(/\s+/);
       for (const i of index) {
         if (isNaN(i) || i <= 0 || i > Reply.pending.length)
           return api.sendMessage(getLang("invaildNumber", i), threadID, messageID);
@@ -53,27 +48,33 @@ module.exports = {
         const memberCount = threadInfo.participantIDs.length;
         const time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka' });
 
-        api.sendMessage(
-`╔═══✦〘 𝙶𝚁𝙾𝚄𝙿 𝙲𝙾𝙽𝙽𝙴𝙲𝚃𝙴𝙳 〙✦═══╗
-┃
-┃ 🏷️ 𝙽𝚊𝚖𝚎: ${groupName}
-┃ 🆔 𝙶𝚛𝚘𝚞𝚙 𝙸𝙳: ${targetThread}
-┃ 👥 𝙼𝚎𝚖𝚋𝚎𝚛𝚜: ${memberCount}
-┃ 🔒 𝙰𝚙𝚙𝚛𝚘𝚟𝚊𝚕 𝙼𝚘𝚍𝚎: ${threadInfo.approvalMode ? "On" : "Off"}
-┃ 😊 𝙴𝚖𝚘𝚓𝚒: ${threadInfo.emoji || "None"}
-┃ ⏰ 𝙹𝚘𝚒𝚗𝚎𝚍: ${time}
-┃
-╠══✦〘 𝙾𝚆𝙽𝙴𝚁 𝙸𝙽𝙵𝙾 〙✦══╣
-┃ 🧑‍💻 𝙽𝚊𝚖𝚎: 『A P O N』
-┃ 🌐 𝙵𝙰𝙲𝙴𝙱𝙾𝙾𝙺: APON DICAPRIO 
-┃ 🗺️ 𝙲𝚘𝚞𝚗𝚝𝚛𝚢: Bangladesh
-┃ ✅ 𝚂𝚝𝚊𝚝𝚞𝚜: Active
-┃ 📞 𝚆𝚑𝚊𝚝𝚜𝙰𝚙𝚙: 0176514****
-┃ ✉️ 𝙴𝚖𝚊𝚒𝚕: aponmohammed4241@gmail.com
-┃ 🧵 Instagram: apon_dicaprio 
-┃ 💡 𝚃𝚒𝚙: Type /help to see all commands!
-╚════════════════════╝`, targetThread);
+        // Premium styled VIP box
+        const premiumMsg = 
+`💎━━━━━━━━━━━━━━━━💎
+🔹 𝐆𝐑𝐎𝐔𝐏 𝐈𝐍𝐅𝐎 🔹
+💎━━━━━━━━━━━━━━━━💎
+🏷️ Name: ${groupName}
+🆔 ID: ${targetThread}
+👥 Members: ${memberCount}
+🔒 Approval Mode: ${threadInfo.approvalMode ? "On" : "Off"}
+😊 Emoji: ${threadInfo.emoji || "None"}
+⏰ Joined: ${time}
+💡 To Approve: Reply with the number ${i}
 
+💎━━━━━━━━━━━━━━━━💎
+🔹 𝐎𝐖𝐍𝐄𝐑 𝐈𝐍𝐅𝐎 🔹
+💎━━━━━━━━━━━━━━━━💎
+🧑‍💻 Name: 『A P O N』
+🌐 Facebook: Apon DiCaprio 
+🗺️ Country: Bangladesh
+✅ Status: Active
+📞 WhatsApp: 01765144xxx
+✉️ Email: aponmohammed4241@gmail.com
+🧵 Telegram: Not a user 
+💡 Tip: Type /help to see all commands!
+💎━━━━━━━━━━━━━━━━💎`;
+
+        api.sendMessage(premiumMsg, targetThread);
         count++;
       }
       return api.sendMessage(getLang("approveSuccess", count), threadID, messageID);
