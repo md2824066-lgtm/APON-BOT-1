@@ -1,4 +1,4 @@
-/cmd install activity.js const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const DB_FILE = path.join(__dirname, 'activity_db.json');
 
@@ -51,7 +51,7 @@ function recordMessage(chatId, senderId) {
   saveDB();
 }
 
-function getReportHuman(chatId) {
+async function getReportHuman(chatId, api) {
   ensureChat(chatId);
   const chat = db.chats[chatId];
   const users = Object.entries(chat.users).map(([uid, u]) => ({
@@ -62,13 +62,35 @@ function getReportHuman(chatId) {
 
   users.sort((a, b) => b.messages - a.messages);
 
-  let text = `📊 Activity Report for Chat: ${chatId}\n`;
-  text += `First message: ${chat.firstMessage ? new Date(chat.firstMessage).toLocaleString() : 'N/A'}\n`;
-  text += `Last message: ${chat.lastMessage ? new Date(chat.lastMessage).toLocaleString() : 'N/A'}\n\n`;
-  text += `👥 Users:\n`;
+  // fetch user names
+  let nameMap = {};
+  try {
+    nameMap = await api.getUserInfo(users.map(u => u.uid));
+  } catch (e) {}
+
+  let text = "💎━━━━━━━━━━━━━━━━💎\n";
+  text += "✨ 『 𝐕𝐈𝐏 𝐀𝐂𝐓𝐈𝐕𝐈𝐓𝐘 𝐑𝐄𝐏𝐎𝐑𝐓 』 ✨\n";
+  text += "💎━━━━━━━━━━━━━━━━💎\n\n";
+
+  text += `🆔 Chat ID: ${chatId}\n`;
+  text += `📅 First Msg: ${chat.firstMessage ? new Date(chat.firstMessage).toLocaleString() : 'N/A'}\n`;
+  text += `⏳ Last Msg: ${chat.lastMessage ? new Date(chat.lastMessage).toLocaleString() : 'N/A'}\n\n`;
+
+  text += "👑 『 𝐑𝐀𝐍𝐊 𝐋𝐈𝐒𝐓 』 👑\n";
+  text += "━━━━━━━━━━━━━━━\n";
+
   users.forEach((u, i) => {
-    text += `${i + 1}. ${u.uid} — ${u.messages} msgs — ${u.activeTime}\n`;
+    const crown = i === 0 ? "👑" : (i === 1 ? "🥈" : (i === 2 ? "🥉" : "🔹"));
+    const name = nameMap[u.uid]?.name || u.uid;
+    text += `${crown} 𝐑𝐚𝐧𝐤 ${i + 1}\n`;
+    text += `🙋 Name: ${name}\n`;
+    text += `💌 Messages: ${u.messages}\n`;
+    text += `⏱ Active: ${u.activeTime}\n`;
+    text += "━━━━━━━━━━━━━━━\n";
   });
+
+  text += `📌 Total Users: ${users.length}\n`;
+  text += "💎━━━━━━━━━━━━━━━━💎";
 
   return text;
 }
@@ -77,23 +99,22 @@ function getReportHuman(chatId) {
 module.exports = {
   config: {
     name: "activity",
-    version: "1.0",
+    version: "3.0",
     author: "Apon & GPT",
     countDown: 5,
     role: 0,
-    shortDescription: "Shows user activity",
-    longDescription: "Tracks and shows how many messages each user sent and how long they've been active",
+    shortDescription: "Shows VIP user activity",
+    longDescription: "Tracks and shows messages, first message time, ranks with names in a premium VIP format",
     category: "tools",
     guide: "{p}activity"
   },
 
   onStart: async function({ api, event }) {
-    const report = getReportHuman(event.threadID);
+    const report = await getReportHuman(event.threadID, api);
     api.sendMessage(report, event.threadID, event.messageID);
   },
 
   onChat: async function({ event }) {
-    // Tracks every message automatically
     recordMessage(event.threadID, event.senderID);
   }
 };
