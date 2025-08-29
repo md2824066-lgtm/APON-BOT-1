@@ -1,43 +1,37 @@
 module.exports = {
   config: {
     name: "info",
-    aliases: ["botinfo", "owner"],
-    version: "1.0",
-    author: "Md Apon",
+    aliases: ["about", "me"],
+    version: "2.0",
+    author: "Apon Dicaprio",
     countDown: 5,
     role: 0,
-    shortDescription: "Show bot and owner information",
-    longDescription: "Displays detailed information about the bot and its owner",
-    category: "info",
-    guide: "{pn}"
+    shortDescription: "Show your premium royal profile",
+    longDescription: "Displays a stylish cyber royal info card",
+    category: "info"
   },
 
-  onStart: async function ({ api, event }) {
-    const ownerName = "Apon DiCaprio";
-    const ownerFB = "https://facebook.com/apon.dicaprio";
-    const contact = "+8801765144###"; // Replace ### with actual digits
-    const botName = "APON Messenger Goat Bot";
-    const version = "1.0";
-    const prefix = "/";
-    const groupLink = "No Group";
+  onStart: async function ({ message }) {
+    const profile = `
+╔═══━━━─── • 👑 • ───━━━═══╗
+        𝐑𝐎𝐘𝐀𝐋 𝐂𝐘𝐁𝐄𝐑 𝐈𝐃
+╚═══━━━─── • 👑 • ───━━━═══╝
 
-    const message = 
-`📌 BOT INFORMATION
-━━━━━━━━━━━━━━━━
-🤖 Bot Name: ${botName}
-⚙ Version: ${version}
-💬 Prefix: ${prefix}
+✨ 𝐍𝐚𝐦𝐞 : 『 𝘼𝙥𝙤𝙣 』
+📅 𝐃.𝐎.𝐁 : 『 01•01•200* 』
+🏠 𝐀𝐝𝐝𝐫𝐞𝐬𝐬 : 『 𝙇𝙖𝙠𝙨𝙝𝙢𝙞𝙥𝙪𝙧 』
 
-👑 OWNER INFORMATION
-━━━━━━━━━━━━━━━━
-👤 Name: ${ownerName}
-📘 Facebook: ${ownerFB}
-📱 Contact: ${contact}
+🌐 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤 : 『 Apon DiCaprio | Apon Xyro 』
+📸 𝐈𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦 : 『 @apon_dicaprio 』
+🎶 𝐓𝐢𝐤𝐓𝐨𝐤 : 『 @apon_dicaprio 』
 
-🌐 COMMUNITY
-━━━━━━━━━━━━━━━━
-🔗 Group: ${groupLink}
+📧 𝐆𝐦𝐚𝐢𝐥 : 『 aponmohammed4241@gmail.com 』
 
-✨ Thank you for using the bot!`;
+╔═══━━━─── • ⚡ • ───━━━═══╗
+     "𝐈 𝐑𝐔𝐋𝐄 𝐓𝐇𝐄 𝐆𝐀𝐌𝐄"
+╚═══━━━─── • ⚡ • ───━━━═══╝
+    `;
 
-    api.sendMessage(message, event.threadID, event.message
+    message.reply(profile);
+  }
+};
