@@ -86,7 +86,7 @@ module.exports = {
 
         const sortedNames = cmdList.sort((a, b) => a.localeCompare(b));
         for (const cmdName of sortedNames) {
-          msg += `┋🗣️ ${cmdName}\n`;
+          msg += `┋➣➣ ${cmdName}\n`;
         }
 
         msg += "┕━━━━━━━━━━━━◊\n";
