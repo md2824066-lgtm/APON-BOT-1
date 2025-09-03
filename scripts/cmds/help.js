@@ -57,7 +57,7 @@ module.exports = {
       for (const category of Object.keys(categories).sort()) {
         if (!categories[category].commands.length) continue;
         const emoji = categoryEmojis[category.toLowerCase()] || "⚡";
-        msg += `┏━【 ${emoji} 𝗕𝗢𝗟𝗗 ${category.toUpperCase()} 𝗕𝗢𝗫 ${emoji} 】\n`;
+        msg += `┏━【 ${emoji} ${category.toUpperCase()} ${emoji} 】\n`;
 
         const sortedCmds = categories[category].commands.sort();
         for (const cmd of sortedCmds) {
