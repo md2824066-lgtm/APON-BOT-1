@@ -24,8 +24,8 @@ module.exports = {
   config: {
     name: "rps",
     aliases: ["rockpaperscissors"],
-    version: "1.3",
-    author: "GPT VIP + Your Custom Message",
+    version: "1.2",
+    author: "GPT VIP",
     countDown: 5,
     role: 0,
     shortDescription: "Play Rock Paper Scissors",
