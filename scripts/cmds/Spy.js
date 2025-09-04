@@ -35,7 +35,7 @@ module.exports = {
     aliases: ["whoishe", "whoisshe", "whoami", "atake"],
     version: "6.0",
     role: 0,
-    author: "Dipto | styled by Amit Max ⚡",
+    author: "Apon⚡",
     Description: "User info with smooth bottom and fit text",
     category: "information",
     countDown: 10,
