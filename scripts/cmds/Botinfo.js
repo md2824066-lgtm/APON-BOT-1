@@ -2,7 +2,7 @@ module.exports = {
   config: {
     name: "botinfo",
     version: "1.0.1",
-    author: "ChatGPT",
+    author: "APON",
     role: 0,
     cooldown: 3,
     category: "info",
