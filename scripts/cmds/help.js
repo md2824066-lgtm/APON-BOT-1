@@ -75,7 +75,7 @@ module.exports = {
       msg += "━━━━━━━━━━━━━━━";
 
       // Single background image
-      const bgImg = "https://files.catbox.moe/advw6s.jpg";
+      const bgImg = "https://files.catbox.moe/kcv41x.jpg";
 
       await message.reply({
         body: msg,
