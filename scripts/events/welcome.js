@@ -1,4 +1,4 @@
-const { createCanvas, loadImage, registerFont } = require("canvas");
+/cmd install welcome.js const { createCanvas, loadImage, registerFont } = require("canvas");
 const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
@@ -6,7 +6,7 @@ const path = require("path");
 module.exports = {
   config: {
     name: "welcome",
-    version: "2.0",
+    version: "2.1",
     author: "Ew'r Saim",
     category: "events"
   },
@@ -14,7 +14,7 @@ module.exports = {
   onStart: async function ({ api, event }) {
     if (event.logMessageType !== "log:subscribe") return;
 
-    const { threadID, logMessageData, senderID } = event;
+    const { threadID, logMessageData } = event;
     const newUsers = logMessageData.addedParticipants;
     const botID = api.getCurrentUserID();
 
@@ -39,14 +39,27 @@ module.exports = {
 
       const avatarSize = 240;
 
+      // সব background image এখানে আছে
       const backgrounds = [
         "https://files.catbox.moe/b7xfaz.jpg",
         "https://files.catbox.moe/0n8mmb.jpg",
         "https://files.catbox.moe/hvynlb.jpg",
         "https://files.catbox.moe/leyeuq.jpg",
         "https://files.catbox.moe/7ufcfb.jpg",
-        "https://files.catbox.moe/gagvyh.jpg"
+        "https://files.catbox.moe/gagvyh.jpg",
+        "https://files.catbox.moe/no336p.jpg",
+        "https://files.catbox.moe/dvepnj.jpg",
+        "https://files.catbox.moe/o8z4xn.jpg",
+        "https://files.catbox.moe/f8dqu4.jpg",
+        "https://files.catbox.moe/vi6b8h.jpg",
+        "https://files.catbox.moe/60sfq4.jpg",
+        "https://files.catbox.moe/tkizll.jpg",
+        "https://files.catbox.moe/zav1wl.jpg",
+        "https://files.catbox.moe/xojwhy.jpg",
+        "https://files.catbox.moe/zll0td.jpg",
+        "https://files.catbox.moe/rken3g.jpg"
       ];
+
       const bgUrl = backgrounds[Math.floor(Math.random() * backgrounds.length)];
 
       const tmp = path.join(__dirname, "..", "cache");
