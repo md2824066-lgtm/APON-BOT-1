@@ -1,36 +1,68 @@
 const fs = require("fs");
 const path = require("path");
 
-const dataFile = path.join(__dirname, "coinData.json");
+let getMoney, increaseMoney, decreaseMoney;
 
-// Load & Save Functions
-function loadData() {
-  if (!fs.existsSync(dataFile)) return {};
-  return JSON.parse(fs.readFileSync(dataFile));
-}
-function saveData(data) {
-  fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+// ===== Economy system detect =====
+try {
+  const currency = require("../../utils/currency");
+  getMoney = currency.getMoney;
+  increaseMoney = currency.increaseMoney;
+  decreaseMoney = currency.decreaseMoney;
+} catch (e) {
+  // fallback balance.json
+  const balanceFile = path.join(__dirname, "balance.json");
+  function loadBalance() {
+    if (!fs.existsSync(balanceFile)) return {};
+    return JSON.parse(fs.readFileSync(balanceFile));
+  }
+  function saveBalance(data) {
+    fs.writeFileSync(balanceFile, JSON.stringify(data, null, 2));
+  }
+  getMoney = async (uid) => {
+    const bal = loadBalance();
+    return bal[uid]?.money || 0;
+  };
+  increaseMoney = async (uid, amt) => {
+    const bal = loadBalance();
+    if (!bal[uid]) bal[uid] = { money: 0 };
+    bal[uid].money += amt;
+    saveBalance(bal);
+  };
+  decreaseMoney = async (uid, amt) => {
+    const bal = loadBalance();
+    if (!bal[uid]) bal[uid] = { money: 0 };
+    bal[uid].money = Math.max(0, bal[uid].money - amt);
+    saveBalance(bal);
+  };
 }
 
 module.exports = {
   config: {
     name: "coin",
     author: "Custom by GPT",
-    category: "game",
-    description: "Toss game (Head or Tail) + Balance + Leaderboard",
+    category: "casino",
+    description: "🎲 Coin Toss Game (Head/Tail) + Balance + Leaderboard",
   },
 
   onStart: async function ({ api, event, args }) {
     try {
-      let data = loadData();
-      if (!data[event.senderID]) data[event.senderID] = { coins: 0 };
+      const userID = event.senderID;
+
+      // New player bonus
+      let balance = await getMoney(userID);
+      if (balance <= 0) {
+        await increaseMoney(userID, 1000);
+        balance = 1000;
+        api.sendMessage("🎁 Welcome Bonus: +1000 coins", event.threadID);
+      }
 
       const cmd = args[0]?.toLowerCase();
 
       // ✅ /coin balance
       if (cmd === "balance") {
         return api.sendMessage(
-          `💳 𝗖𝗼𝗶𝗻 𝗕𝗮𝗹𝗮𝗻𝗰𝗲\n👤 User: ${event.senderID}\n🏦 Coins: ${data[event.senderID].coins}`,
+          `💳 𝗖𝗼𝗶𝗻 𝗕𝗮𝗹𝗮𝗻𝗰𝗲\n👤 User: ${userID}\n🏦 Coins: ${balance}`,
           event.threadID,
           event.messageID
         );
@@ -38,8 +70,13 @@ module.exports = {
 
       // ✅ /coin leaderboard
       if (cmd === "leaderboard") {
-        let leaderboard = Object.entries(data)
-          .sort((a, b) => b[1].coins - a[1].coins)
+        const balFile = path.join(__dirname, "balance.json");
+        let balData = {};
+        if (fs.existsSync(balFile)) {
+          balData = JSON.parse(fs.readFileSync(balFile));
+        }
+        let leaderboard = Object.entries(balData)
+          .sort((a, b) => b[1].money - a[1].money)
           .slice(0, 10);
 
         if (leaderboard.length === 0) {
@@ -48,19 +85,29 @@ module.exports = {
 
         let msg = "🏆 𝗧𝗼𝗽 𝗖𝗼𝗶𝗻 𝗟𝗲𝗮𝗱𝗲𝗿𝗯𝗼𝗮𝗿𝗱 🏆\n\n";
         leaderboard.forEach(([id, userData], index) => {
-          msg += `${index + 1}. 👤 ${id} → ${userData.coins} coins\n`;
+          msg += `${index + 1}. 👤 ${id} → ${userData.money} coins\n`;
         });
 
         return api.sendMessage(msg, event.threadID, event.messageID);
       }
 
-      // ✅ /coin head OR tail
+      // ✅ /coin head <bet> OR /coin tail <bet>
       if (!cmd || !["head", "tail"].includes(cmd)) {
         return api.sendMessage(
-          "⚠️ Usage:\n/coin head\n/coin tail\n/coin balance\n/coin leaderboard",
+          "⚠️ Usage:\n/coin head <bet>\n/coin tail <bet>\n/coin balance\n/coin leaderboard",
           event.threadID,
           event.messageID
         );
+      }
+
+      const bet = parseInt(args[1]);
+      if (!bet || bet <= 0) {
+        return api.sendMessage("⚠️ Please enter a valid bet amount!\nExample: /coin head 100", event.threadID, event.messageID);
+      }
+
+      balance = await getMoney(userID);
+      if (balance < bet) {
+        return api.sendMessage("💰 You don’t have enough coins!", event.threadID, event.messageID);
       }
 
       const outcomes = ["head", "tail"];
@@ -68,14 +115,16 @@ module.exports = {
 
       // Images
       const imageMap = {
-        head: "https://files.catbox.moe/p4d58u.jpg", // Head image
-        tail: "https://files.catbox.moe/8p20oz.jpg"  // Tail image
+        head: "https://files.catbox.moe/p4d58u.jpg",
+        tail: "https://files.catbox.moe/8p20oz.jpg"
       };
 
       let message = "";
+      let attachment = await global.utils.getStreamFromURL(imageMap[result]);
 
       if (cmd === result) {
-        data[event.senderID].coins += 1;
+        const reward = bet * 2; // win = bet ×2
+        await increaseMoney(userID, reward);
         message =
 `╔══════════════════╗
    🌿✨ 𝗬𝗢𝗨 𝗪𝗢𝗡 ✨🌿
@@ -84,13 +133,11 @@ module.exports = {
 🎯 Your Choice: ${cmd.toUpperCase()}
 ✅ Toss Result: ${result.toUpperCase()}
 
-🏆 Congratulations!
-➕ +1 Coin
-
-💳 Balance: ${data[event.senderID].coins} coins
+🏆 Reward: +${reward} Coins
+💳 Balance: ${await getMoney(userID)}
 ═════════════════════`;
       } else {
-        data[event.senderID].coins = Math.max(0, data[event.senderID].coins - 1);
+        await decreaseMoney(userID, bet); // lose = cut bet
         message =
 `╔══════════════════╗
    🔥💔 𝗬𝗢𝗨 𝗟𝗢𝗦𝗧 💔🔥
@@ -99,26 +146,15 @@ module.exports = {
 🎯 Your Choice: ${cmd.toUpperCase()}
 ❌ Toss Result: ${result.toUpperCase()}
 
-😔 Better luck next time!
-➖ -1 Coin
-
-💳 Balance: ${data[event.senderID].coins} coins
+➖ Lost: -${bet} Coins
+💳 Balance: ${await getMoney(userID)}
 ═════════════════════`;
       }
 
-      saveData(data);
-
-      // Always send result image
-      const attachment = await global.utils.getStreamFromURL(imageMap[result]);
-
-      api.sendMessage(
-        { body: message, attachment },
-        event.threadID,
-        event.messageID
-      );
+      return api.sendMessage({ body: message, attachment }, event.threadID, event.messageID);
 
     } catch (error) {
       api.sendMessage("❌ Error: " + error.message, event.threadID, event.messageID);
     }
-  },
+  }
 };
