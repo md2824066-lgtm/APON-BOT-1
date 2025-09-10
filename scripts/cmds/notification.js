@@ -20,11 +20,11 @@ module.exports = {
 	langs: {
 		en: {
 			missingMessage: "❌ Please enter the message to send to all groups",
-			notificationHeader: "💎───『 𝑵𝑶𝑻𝑰𝑭𝑰𝑪𝑨𝑻𝑰𝑶𝑵 』───💎"
+			notificationHeader: "『 𝑵𝑶𝑻𝑰𝑭𝑰𝑪𝑨𝑻𝑰𝑶𝑵 』"
 		},
 		vi: {
 			missingMessage: "❌ Vui lòng nhập tin nhắn bạn muốn gửi đến tất cả nhóm",
-			notificationHeader: "💎───『 𝑵𝑶𝑻𝑰𝑭𝑰𝑪𝑨𝑻𝑰𝑶𝑵 』───💎"
+			notificationHeader: "💎───『 𝑵𝑶𝑻𝑰𝑭𝑰𝑪𝑨𝑻𝑰𝑶𝑵 』"
 		}
 	},
 
@@ -33,7 +33,7 @@ module.exports = {
 		if (!args[0]) return message.reply(getLang("missingMessage"));
 
 		const formSend = {
-			body: `${getLang("notificationHeader")}\n──────────────────────────────\n${args.join(" ")}`,
+			body: `${getLang("notificationHeader")}\n───────────────\n${args.join(" ")}`,
 			attachment: await getStreamsFromAttachment(
 				[
 					...event.attachments,
@@ -62,7 +62,7 @@ module.exports = {
 		}
 
 		// Single summary VIP message
-		let report = `💎━━━━━━━━━━━━━━💎\n`;
+		let report = `💎━━━━━━━━━💎\n`;
 		report += `✅ Successfully sent notification to ${sendSuccess} group(s)\n`;
 		if (sendError.length > 0) {
 			report += `⚠️ Failed to send to ${sendError.length} group(s)\n`;
