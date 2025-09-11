@@ -1,4 +1,4 @@
-/cmd install welcome.js const { createCanvas, loadImage, registerFont } = require("canvas");
+const { createCanvas, loadImage, registerFont } = require("canvas");
 const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
