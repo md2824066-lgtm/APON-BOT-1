@@ -1,4 +1,4 @@
-const fs = require("fs-extra");
+/cmd install help.js const fs = require("fs-extra");
 const axios = require("axios");
 const path = require("path");
 const { getPrefix } = global.utils;
@@ -75,7 +75,7 @@ module.exports = {
       msg += "━━━━━━━━━━━━━━━";
 
       // Single background image
-      const bgImg = "https://files.catbox.moe/kcv41x.jpg";
+      const bgImg = "https://files.catbox.moe/3ln2qf.jpg";
 
       await message.reply({
         body: msg,
