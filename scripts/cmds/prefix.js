@@ -135,7 +135,7 @@ module.exports = {
 ➤ 👤 Your ID: ${event.senderID}
 ➤ ✍️ Dev: APON DICAPRIO 
 ➤➤➤➤➤➤➤➤➤➤➤➤➤`,
-        attachment: await utils.getStreamFromURL("https://files.catbox.moe/kcv41x.jpg")
+        attachment: await utils.getStreamFromURL("https://files.catbox.moe/3ln2qf.jpg")
       });
     }
   }
