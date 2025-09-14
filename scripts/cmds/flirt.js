@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = __dirname + "/cache/flirtOn.json";
 
-const OWNER_ID = ["61550806961724",];
+const OWNER_ID = ["100093362964794",];
 
 module.exports = {
   config: {
