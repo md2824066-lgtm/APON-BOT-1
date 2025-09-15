@@ -152,7 +152,6 @@ a
 return api.sendMessage(Error: ${err.message}, event.threadID, event.messageID);
 }
 };
-
 module.exports.onChat = async ({
 api,
 event,
@@ -191,3 +190,4 @@ await api.sendMessage(randomReplies[Math.floor(Math.random() * randomReplies.len
 }
 
 };
+
