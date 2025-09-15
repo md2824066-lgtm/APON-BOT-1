@@ -191,7 +191,3 @@ await api.sendMessage(randomReplies[Math.floor(Math.random() * randomReplies.len
 }
 
 };
-
-Amar ei file er jei khane সিয়াম বা সাইম লেখা ওই খানে তুমি আপন নাম টা দিবা এন্ড jodi Englishe Siam Saim' lekha thake thakle APON diba tar bodle
-
-    
