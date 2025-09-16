@@ -140,5 +140,3 @@ if (!arr) {
 return api.sendMessage(Error: ${err.message}, event.threadID, event.messageID);
 }
 };
-
-      
