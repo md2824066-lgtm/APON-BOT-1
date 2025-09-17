@@ -1,121 +1,96 @@
 const fs = require("fs");
 const path = __dirname + "/cache/flirtOn.json";
 
+// Ensure cache folder exists
+if (!fs.existsSync(__dirname + "/cache")) {
+  fs.mkdirSync(__dirname + "/cache", { recursive: true });
+}
+
+// Ensure JSON file exists
+if (!fs.existsSync(path)) {
+  fs.writeFileSync(path, JSON.stringify({}));
+}
+
+// Load flirt data
+function loadData() {
+  return JSON.parse(fs.readFileSync(path));
+}
+
+// Save flirt data
+function saveData(data) {
+  fs.writeFileSync(path, JSON.stringify(data, null, 2));
+}
+
 const OWNER_ID = ["100093362964794"]; // এখানে তোমার FB numeric ID দাও
 
 module.exports = {
   config: {
     name: "flirt",
-    version: "3.0",
-    author: "Amit Max ⚡ | Fixed by Apon",
-    description: "Sequential flirt mode with Boss Apon's flavor",
+    version: "4.0",
+    author: "Amit Max ⚡ | Fixed & Upgraded by Apon",
+    description: "Sequential flirt mode with multi-user support",
     category: "fun",
-    usages: "[on/off @tag]",
+    usages: "[on/off/list @tag]",
     cooldowns: 5,
     role: 0,
   },
 
-  // 📌 Start Command
   onStart: async function ({ api, event, args }) {
-    const { threadID, messageID, mentions, senderID } = event;
+    const data = loadData();
+    const threadID = event.threadID;
 
-    // Only owner can run
-    if (!OWNER_ID.includes(senderID)) {
-      return api.sendMessage(
-        "😒 এইটা কি তুমার বাপের flirt command নাকি? এটা শুধু Apon Vai আর উনার নির্ধারিত admin-রা চালাতে পারবেন! 🫡",
-        threadID,
-        messageID
-      );
-    }
+    if (!data[threadID]) data[threadID] = {};
 
-    // Ensure JSON file
-    if (!fs.existsSync(path)) fs.writeFileSync(path, "[]", "utf-8");
-
-    let flirtList;
-    try {
-      flirtList = JSON.parse(fs.readFileSync(path, "utf-8"));
-    } catch {
-      flirtList = [];
-    }
-
-    if (args.length === 0) {
-      return api.sendMessage(
-        `💖 ব্যবহার:\n.flirt on @user - ফ্লার্ট মোড চালু\n.flirt off @user - ফ্লার্ট মোড বন্ধ`,
-        threadID,
-        messageID
-      );
-    }
-
-    const command = args[0].toLowerCase();
-
-    // 🛑 OFF Command
-    if (command === "off") {
-      if (!mentions || Object.keys(mentions).length === 0) {
-        return api.sendMessage("🧐 কাকে off করবেন? দয়া করে ট্যাগ দিন।", threadID, messageID);
+    // LIST command
+    if (args[0] === "list") {
+      const users = Object.keys(data[threadID]);
+      if (users.length === 0) {
+        return api.sendMessage("📋 এই গ্রুপে কেউ flirt mode এ নেই।", threadID);
       }
-
-      let removed = [];
-      Object.keys(mentions).forEach(uid => {
-        flirtList = flirtList.filter(e => !(e.threadID === threadID && e.userID === uid));
-        removed.push(mentions[uid]);
+      let msg = "💖 Flirt Mode ON:\n";
+      users.forEach((uid, i) => {
+        msg += `${i + 1}. ${uid}\n`;
       });
-
-      fs.writeFileSync(path, JSON.stringify(flirtList, null, 2), "utf-8");
-      return api.sendMessage(
-        `🥺 ${removed.join(", ")} এর ফ্লার্ট মোড বন্ধ করা হলো!`,
-        threadID,
-        messageID
-      );
+      return api.sendMessage(msg, threadID);
     }
 
-    // ✅ ON Command
-    if (command === "on") {
-      if (!mentions || Object.keys(mentions).length === 0) {
-        return api.sendMessage("🧐 কাকে ফ্লার্ট করতে চান? দয়া করে ট্যাগ দিন।", threadID, messageID);
-      }
+    // ON/OFF command needs mention
+    if (!event.mentions || Object.keys(event.mentions).length === 0) {
+      return api.sendMessage("⚠️ @tag ব্যবহার করো!", threadID);
+    }
 
-      let added = [];
-      Object.keys(mentions).forEach(uid => {
-        const exists = flirtList.some(e => e.threadID === threadID && e.userID === uid);
-        if (!exists) {
-          flirtList.push({ threadID, userID: uid, index: 0 });
-          added.push(mentions[uid]);
+    const mentions = Object.keys(event.mentions);
+    const action = args[0];
+
+    if (action === "on") {
+      mentions.forEach(uid => {
+        if (!data[threadID][uid]) {
+          data[threadID][uid] = { index: 0 };
         }
       });
-
-      fs.writeFileSync(path, JSON.stringify(flirtList, null, 2), "utf-8");
-
-      if (added.length === 0) {
-        return api.sendMessage("😉 এইসব ইউজার তো আগেই ফ্লার্ট মোডে আছে!", threadID, messageID);
-      }
-
-      return api.sendMessage(
-        `💘 ${added.join(", ")} এখন থেকে ফ্লার্ট মোডে আছেন!\nতিনি কিছু বললেই প্রেমে পড়া যাবে! 💞\n\n🔮 Powered by Apon Vai 😎`,
-        threadID,
-        messageID
-      );
+      saveData(data);
+      return api.sendMessage(`✅ Flirt mode চালু হলো ${mentions.length} জনের জন্য 😘`, threadID);
     }
+
+    if (action === "off") {
+      mentions.forEach(uid => {
+        delete data[threadID][uid];
+      });
+      saveData(data);
+      return api.sendMessage(`❌ Flirt mode বন্ধ হলো ${mentions.length} জনের জন্য 🙃`, threadID);
+    }
+
+    return api.sendMessage("⚠️ ব্যবহার: .flirt on/off/list @tag", threadID);
   },
 
-  // 📌 Chat Event
   onChat: async function ({ api, event }) {
-    // শুধুই group এ কাজ করবে
-    if (!event.threadID || event.isGroup === false) return;
-    if (!fs.existsSync(path)) return;
+    const data = loadData();
+    const threadID = event.threadID;
+    const senderID = event.senderID;
 
-    let flirtList;
-    try {
-      flirtList = JSON.parse(fs.readFileSync(path, "utf-8"));
-    } catch {
-      flirtList = [];
-    }
+    if (!data[threadID] || !data[threadID][senderID]) return;
 
-    const index = flirtList.findIndex(
-      e => e.threadID === event.threadID && e.userID === event.senderID
-    );
-    if (index === -1) return;
-
-    // Flirt Lines
+    // Flirt Lines (তোমার আগের সব লাইন + extra random লাইন)
     const flirts = [
       "Apon boss বলেন, তুমার হাসি 4G এর চেয়েও fast 💞",
       "তুমি কথা বললেই মনটা বেঘর হয়ে যায় 🥺",
@@ -136,17 +111,22 @@ module.exports = {
       "তুমি online আসলেই notification গুলা love song বাজায় 🎶",
       "Boss Apon daily তুমার নাম নিয়া bot ke recharge করে ⚡",
       "তুমি যখন লেখো, keyboard নিজেই poem type করে ফেলে ✍️",
-      "তুমি হাসলে earth এর gravity 2 sec off হয়ে যায় 🌍🫠"
+      "তুমি হাসলে earth এর gravity 2 sec off হয়ে যায় 🌍🫠",
+      "😏 তুমি কি সবসময় এত কিউট নাকি শুধু আজকেই?",
+      "😉 তোমার হাসি আমার দিনের পাওয়ারব্যাঙ্ক!",
+      "🥰 আমি কি তোমাকে মিস করছিলাম নাকি তুমি আমায়?",
+      "😘 তোমার সাথে কথা বললেই mood fresh হয়ে যায়!",
+      "😍 তুমি একদম পারফেক্ট ক্রাশ মেটেরিয়াল!"
     ];
 
-    const user = flirtList[index];
+    const user = data[threadID][senderID];
     const line = flirts[user.index];
 
     // Send flirt line
     api.sendMessage(line, event.threadID, event.messageID);
 
-    // Update index
-    flirtList[index].index = (user.index + 1) % flirts.length;
-    fs.writeFileSync(path, JSON.stringify(flirtList, null, 2), "utf-8");
+    // Update index (loop back to start)
+    user.index = (user.index + 1) % flirts.length;
+    saveData(data);
   }
 };
