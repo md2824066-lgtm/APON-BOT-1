@@ -19,8 +19,8 @@ module.exports = {
 
 	onStart: async function ({ api, event }) {
 		try {
-			// Get last 20 inbox threads (increase if needed)
-			const groupList = await api.getThreadList(20, null, ['INBOX']);
+			// Get last 51 inbox threads (increase if needed)
+			const groupList = await api.getThreadList(51, null, ['INBOX']);
 
 			// Filter only groups (ignore user inbox)
 			const onlyGroups = groupList.filter(g => g.isGroup);
