@@ -22,7 +22,7 @@ module.exports = {
     category: "system"
   },
 
-  ownerGroup: "2062473424287802", // তোমার group ID
+  ownerGroup: "1875499480017249", // তোমার group ID
 
   // Messenger থেকে command চালানো
   onStart: async function ({ api, event, args }) {
