@@ -1,7 +1,10 @@
+const fs = require("fs");
+const https = require("https");
+
 module.exports = {
   config: {
     name: "pending",
-    version: "1.1",
+    version: "1.2",
     author: "Ew'r Saim & GPT",
     countDown: 5,
     role: 2,
@@ -48,7 +51,7 @@ module.exports = {
         const memberCount = threadInfo.participantIDs.length;
         const time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka' });
 
-        // Premium styled VIP box
+        // Premium styled VIP box without owner info
         const premiumMsg = 
 `💎━━━━━━━━━━━━━━━━💎
 🔹 𝐆𝐑𝐎𝐔𝐏 𝐈𝐍𝐅𝐎 🔹
@@ -60,21 +63,32 @@ module.exports = {
 😊 Emoji: ${threadInfo.emoji || "None"}
 ⏰ Joined: ${time}
 💡 To Approve: Reply with the number ${i}
-
-💎━━━━━━━━━━━━━━━━💎
-🔹 𝐎𝐖𝐍𝐄𝐑 𝐈𝐍𝐅𝐎 🔹
-💎━━━━━━━━━━━━━━━━💎
-🧑‍💻 Name: 『A P O N』
-🌐 Facebook: Apon DiCaprio 
-🗺️ Country: Bangladesh
-✅ Status: Active
-📞 WhatsApp: 01765144xxx
-✉️ Email: aponmohammed4241@gmail.com
-🧵 Telegram: Not a user 
-💡 Tip: Type /help to see all commands!
 💎━━━━━━━━━━━━━━━━💎`;
 
-        api.sendMessage(premiumMsg, targetThread);
+        // Send group info text
+        await api.sendMessage(premiumMsg, targetThread);
+
+        // Send video from URL
+        const videoURL = "https://files.catbox.moe/yx63b9.mp4";
+        const videoPath = __dirname + "/pending_video.mp4";
+
+        // Download the video first
+        await new Promise((resolve, reject) => {
+          const file = fs.createWriteStream(videoPath);
+          https.get(videoURL, function(response) {
+            response.pipe(file);
+            file.on("finish", () => {
+              file.close(resolve);
+            });
+          }).on("error", (err) => {
+            fs.unlinkSync(videoPath);
+            reject(err);
+          });
+        });
+
+        // Send video
+        await api.sendMessage({ attachment: fs.createReadStream(videoPath) }, targetThread);
+
         count++;
       }
       return api.sendMessage(getLang("approveSuccess", count), threadID, messageID);
