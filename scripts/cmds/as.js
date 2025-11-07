@@ -4,7 +4,7 @@ module.exports = {
   config: {
     name: "as",
     version: "1.1",
-    author: "Johir",
+    author: "Apon",
     role: 0,
     shortDescription: {
       en: "Shows the social info of bot owner"
