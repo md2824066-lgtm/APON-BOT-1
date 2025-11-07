@@ -40,7 +40,7 @@ module.exports = {
     if (!args.length) {
       const categories = {};
       let msg = "✨━━━━━━━━━━━━━━✨\n";
-      msg += "      💎 APON HELP MENU 💎\n";
+      msg += "      💎 LISA HELP MENU 💎\n";
       msg += "✨━━━━━━━━━━━━━━✨\n\n";
 
       // Organize commands by category
@@ -75,7 +75,7 @@ module.exports = {
       msg += "━━━━━━━━━━━━━━━";
 
       // Single background image
-      const bgImg = "https://files.catbox.moe/3ln2qf.jpg";
+      const bgImg = "https://files.catbox.moe/zyll9s.mp4";
 
       await message.reply({
         body: msg,
