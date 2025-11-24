@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { Configuration, OpenAIApi } = require('openai');
 
-const OPENAI_API_KEY = "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";
+const OPENAI_API_KEY = "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";
 
 const configuration = new Configuration({
     apiKey: OPENAI_API_KEY,
