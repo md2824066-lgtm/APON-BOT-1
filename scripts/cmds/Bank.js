@@ -1,160 +1,183 @@
-const fs = require("fs-extra");
-const path = require("path");
-
 module.exports = {
   config: {
     name: "bank",
-    version: "1.3",
-    description: "Deposit, withdraw, transfer money, and earn interest",
+    version: "1.2",
+    description: "Deposit, withdraw, earn interest, loan system",
     guide: {
-      en: "{pn} bank [deposit|withdraw|balance|interest|transfer|richest] [amount] [userID?]"
+      vi: "",
+      en:
+        `💫 {pn}Bank Commands 💫\n\n💖 Bank - Show bank features\n💙 Bank balance - Show your balance\n💛 Bank deposit [amount] - Deposit money\n💜 Bank withdraw [amount] - Withdraw money\n✨ Bank interest - Earn double after 6h\n🌷 Bank loan - Take a 20k loan\n😇 Bank repay [amount] - Repay your loan\n😍 Bank top - Top 10 richest users`
     },
-    category: "𝗪𝗔𝗟𝗟𝗘𝗧",
-    countDown: 15,
+    category: "💰 Economy",
+    countDown: 1,
     role: 0,
-    author: "Chitron Bhattacharjee + Modified by Apon"
+    author: "〲T A N J I L ツ"
   },
 
-  onStart: async function ({ args, message, event, api, usersData }) {
-    const user = event.senderID;
-    const userMoney = await usersData.get(user, "money");
-    const info = await api.getUserInfo(user);
-    const username = info[user].name;
+  onStart: async function ({ message, event, args, usersData, api, commandName }) {
+    const { MongoClient } = require("mongodb");
+    const uri = "mongodb+srv://tanjil4:tanjil4@cluster0.lqh9lyk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+    const client = new MongoClient(uri);
 
-    const bankDataPath = path.join(__dirname, "bankData.json");
+    await client.connect();
+    const db = client.db("bankSystem");
+    const users = db.collection("users");
+    const uid = event.senderID;
 
-    // Initialize file
-    if (!fs.existsSync(bankDataPath)) {
-      fs.writeFileSync(bankDataPath, JSON.stringify({}, null, 2), "utf8");
-    }
-
-    const bankData = JSON.parse(fs.readFileSync(bankDataPath, "utf8"));
-
-    if (!bankData[user]) {
-      bankData[user] = { bank: 0, lastInterestClaimed: 0 };
-      fs.writeFileSync(bankDataPath, JSON.stringify(bankData, null, 2), "utf8");
-    }
-
-    let bankBalance = bankData[user].bank || 0;
-
-    const command = args[0]?.toLowerCase();
+    const action = args[0]?.toLowerCase();
     const amount = parseInt(args[1]);
-    const recipientUID = args[2];
 
-    function saveData() {
-      fs.writeFileSync(bankDataPath, JSON.stringify(bankData, null, 2), "utf8");
-    }
+    // Initialize user if not exists
+    const user = await users.findOneAndUpdate(
+      { uid },
+      { $setOnInsert: { balance: 0, loan: 0, lastInterest: Date.now() } },
+      { upsert: true, returnDocument: "after" }
+    );
 
-    switch (command) {
+    switch (action) {
+      case "balance": {
+        return message.reply(`💙 your bank balance: ${user.value.balance}  $✨`);
+      }
+
       case "deposit": {
-        if (isNaN(amount) || amount <= 0) {
-          return message.reply("❏ Please enter a valid amount to deposit 🔁");
-        }
-
-        if (userMoney < amount) {
-          return message.reply("❏ You don’t have enough money to deposit ✖️");
-        }
-
-        bankData[user].bank += amount;
-        await usersData.set(user, { money: userMoney - amount });
-        saveData();
-
-        return message.reply(`❏ Successfully deposited $${formatNumber(amount)} into your bank ✅`);
+        if (!amount || amount <= 0)
+          return message.reply("🌷 example: Bank deposit 100");
+        await users.updateOne({ uid }, { $inc: { balance: amount } });
+        return message.reply(`💖 Deposited ${amount} $ successfully!`);
       }
 
       case "withdraw": {
-        if (isNaN(amount) || amount <= 0) {
-          return message.reply("❏ Please enter a valid amount to withdraw 😪");
-        }
+  if (!amount || amount <= 0) {
+    return message.reply("💖 Please enter a valid amount to withdraw. 🤗");
+  }
 
-        if (amount > bankBalance) {
-          return message.reply("❏ You don’t have that much money in your bank ✖️");
-        }
+  const userData = user.value;
 
-        bankData[user].bank -= amount;
-        await usersData.set(user, { money: userMoney + amount });
-        saveData();
+  if (amount > userData.balance) {
+    return message.reply("🪽 Not enough balance in your bank! 😢");
+  }
 
-        return message.reply(`❏ Successfully withdrew $${formatNumber(amount)} from your bank ✅`);
-      }
+  // 
+  await users.updateOne({ uid }, { $inc: { balance: -amount } });
 
-      case "balance": {
-        return message.reply(`❏ Your bank balance is: $${formatNumber(bankBalance)}`);
-      }
+  // usersData 
+  const currentMoney = await usersData.get(uid, "money") || 0;
+
+  // 
+  await usersData.set(uid, { money: currentMoney + amount });
+
+  return message.reply(`✅ You withdrew $${amount} successfully! 🎀`);
+}
 
       case "interest": {
-        const interestRate = 0.001; // 0.1% daily
-        const lastClaim = bankData[user].lastInterestClaimed || 0;
-        const now = Date.now();
-        const timeDiff = (now - lastClaim) / 1000;
+  const cooldown = 6 * 60 * 60 * 1000; // 
+  const currentTime = Date.now();
+  const lastClaim = user.value.lastInterest || 0;
+  const elapsed = currentTime - lastClaim;
 
-        if (timeDiff < 86400) {
-          const remain = Math.ceil(86400 - timeDiff);
-          const h = Math.floor(remain / 3600);
-          const m = Math.floor((remain % 3600) / 60);
-          return message.reply(`❏ You can claim interest again in ${h}h ${m}m 😉`);
-        }
+  if (elapsed < cooldown) {
+    const remaining = cooldown - elapsed;
+    const hours = Math.floor(remaining / (60 * 60 * 1000));
+    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+    const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+    return message.reply(`🕒 Please wait ${hours}h ${minutes}m ${seconds}s to claim interest again.`);
+  }
 
-        if (bankBalance <= 0) {
-          return message.reply("❏ You don’t have money in the bank to earn interest 💸");
-        }
+  const earnedInterest = user.value.balance * 2;
+  await users.updateOne(
+    { uid },
+    {
+      $inc: { balance: earnedInterest },
+      $set: { lastInterest: currentTime }
+    }
+  );
 
-        const earned = bankBalance * interestRate;
-        bankData[user].bank += earned;
-        bankData[user].lastInterestClaimed = now;
-        saveData();
+  return message.reply(`💸 You've earned $${earnedInterest} interest! Your new balance is $${user.value.balance + earnedInterest}`);
+}
 
-        return message.reply(`❏ You earned $${formatNumber(earned)} interest ✅`);
+      case "loan": {
+        if (user.value.loan > 0)
+          return message.reply("👀 You already have a loan. Repay first.");
+        await users.updateOne({ uid }, { $inc: { balance: 20000, loan: 20000 } });
+        return message.reply(
+          `😍 You received a loan of 20,000 $💸\n💫 Please repay within 3 days.`
+        );
       }
 
-      case "transfer": {
-        if (!recipientUID || isNaN(amount) || amount <= 0) {
-          return message.reply("❏ Usage: bank transfer <amount> <recipientUID>");
-        }
-
-        if (amount > bankBalance) {
-          return message.reply("❏ You don’t have enough balance in the bank ✖️");
-        }
-
-        if (!bankData[recipientUID]) {
-          bankData[recipientUID] = { bank: 0, lastInterestClaimed: 0 };
-        }
-
-        bankData[user].bank -= amount;
-        bankData[recipientUID].bank += amount;
-        saveData();
-
-        return message.reply(`❏ Successfully transferred $${formatNumber(amount)} to UID ${recipientUID} ✅`);
+      case "repay": {
+        if (!amount || amount <= 0)
+          return message.reply("💛 example: Bank repay 1000");
+        if (user.value.loan <= 0)
+          return message.reply("💙 You don’t have any active loans.");
+        if (user.value.balance < amount)
+          return message.reply("💫 Not enough balance to repay.");
+        const repayment = Math.min(amount, user.value.loan);
+        await users.updateOne(
+          { uid },
+          { $inc: { loan: -repayment, balance: -repayment } }
+        );
+        return message.reply(`💖 Repaid ${repayment} $ ✨. Remaining loan: ${user.value.loan - repayment} $✨`);
       }
 
-      case "richest": {
-        const sorted = Object.entries(bankData)
-          .sort((a, b) => b[1].bank - a[1].bank)
-          .slice(0, 5);
+       case "top": {
+  const topUsers = await users
+    .find({ balance: { $gt: 0 } })
+    .sort({ balance: -1 })
+    .limit(10)
+    .toArray();
 
-        let msg = "🏦 Top 5 Richest in Bank 🏦\n\n";
-        let i = 1;
-        for (const [uid, data] of sorted) {
-          let uInfo = await api.getUserInfo(uid);
-          let name = uInfo[uid]?.name || uid;
-          msg += `${i++}. ${name}: $${formatNumber(data.bank)}\n`;
-        }
-        return message.reply(msg);
-      }
+  if (topUsers.length === 0) {
+    return message.reply("😶 No top users found. 💭");
+  }
+
+  // 
+  function formatNumber(number) {
+    if (number >= 1e18) return (number / 1e18).toFixed(2) + "Qi";
+    if (number >= 1e15) return (number / 1e15).toFixed(2) + "Q";
+    if (number >= 1e12) return (number / 1e12).toFixed(2) + "T";
+    if (number >= 1e9) return (number / 1e9).toFixed(2) + "B";
+    if (number >= 1e6) return (number / 1e6).toFixed(2) + "M";
+    if (number >= 1e3) return (number / 1e3).toFixed(2) + "K";
+    return number.toString();
+  }
+
+  let topMsg = "👑 TOP 10 BANK USERS 👑\n✨━━━━━━━━━━━━━━━✨\n";
+
+  for (let i = 0; i < topUsers.length; i++) {
+    const user = topUsers[i];
+    const formattedBalance = formatNumber(user.balance);
+    try {
+      const userInfo = await api.getUserInfo(user.uid);
+      const name = userInfo[user.uid]?.name || "Unknown";
+      topMsg += `${i + 1}. ${name}\n   ➤ Balance: ${formattedBalance} ($${user.balance}) 💸\n`;
+    } catch (err) {
+      topMsg += `${i + 1}. Unknown User\n   ➤ Balance: ${formattedBalance} ($${user.balance}) 💸\n`;
+    }
+  }
+
+  return message.reply(topMsg.trim());
+}
 
       default: {
         return message.reply(
-          "❏ Bank Commands:\n- deposit <amount>\n- withdraw <amount>\n- balance\n- interest\n- transfer <amount> <uid>\n- richest"
+          `
+✨ Bank System Menu ✨
+━━━━━━━━━━━━━━━━━━
+💖 balance 
+
+💙 deposit [amount]
+
+💛 withdraw [amount]
+
+💜 interest [2x]
+
+🌷 loan [only 20000]
+
+😇 repay [amount]
+
+😍 top [10 richest user]  `
         );
       }
     }
   }
 };
-
-// Helper function to format numbers
-function formatNumber(num) {
-  if (num >= 1e9) return (num / 1e9).toFixed(2) + "B";
-  if (num >= 1e6) return (num / 1e6).toFixed(2) + "M";
-  if (num >= 1e3) return (num / 1e3).toFixed(2) + "K";
-  return num.toFixed(2);
-}
