@@ -6,10 +6,10 @@ const axios = require("axios");
 };
 
 module.exports.config = {
-  name: "baby",
+  name: "Hinata",
   aliases: ["jann","জান", "janu", "jan", "baby", "bby"],
   version: "1.7",
-  author: "Apon",
+  author: "mahMUD",
   countDown: 0,
   role: 0,
   category: "ai",
