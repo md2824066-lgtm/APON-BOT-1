@@ -6,10 +6,10 @@ const axios = require("axios");
 };
 
 module.exports.config = {
-  name: "Hinata",
+  name: "hinata",
   aliases: ["jann","জান", "janu", "jan", "baby", "bby"],
   version: "1.7",
-  author: "mahMUD",
+  author: "MahMUD",
   countDown: 0,
   role: 0,
   category: "ai",
@@ -24,7 +24,7 @@ module.exports.onStart = async ({ api, event, args, usersData }) => {
     const uid = event.senderID;
 
     if (!args[0]) {
-      const responses = ["𝐛𝐨𝐥𝐨 𝐣𝐚𝐧😎", "𝐛𝐨𝐥𝐨 𝐛𝐚𝐛𝐲🐥", "𝐡𝐞𝐥𝐥𝐨 𝐛𝐚𝐛𝐲🐤", "𝐇𝐮𝐦𝐦 𝐛𝐨𝐥𝐨😗", "ummmmah jan", "prem korba Ami kintu single🐥"];
+      const responses = ["𝐛𝐨𝐥𝐨 𝐣𝐚𝐧😎", "𝐛𝐨𝐥𝐨 𝐛𝐚𝐛𝐲🐥", "𝐡𝐞𝐥𝐥𝐨 𝐛𝐚𝐛𝐲🐤", "𝐇𝐮𝐦𝐦 𝐛𝐨𝐥𝐨😗"];
       return api.sendMessage(responses[Math.floor(Math.random() * responses.length)], event.threadID, event.messageID);
     }
 
