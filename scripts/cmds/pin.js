@@ -1,92 +1,65 @@
 const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
-const baseApiUrl = async () => {
-    const base = await axios.get(
-        `https://raw.githubusercontent.com/Blankid018/D1PT0/main/baseApiUrl.json`,
-    );
-    return base.data.api;
+
+const mahmud = async () => {
+  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/exe/main/baseApiUrl.json");
+  return base.data.mahmud;
 };
 
 module.exports = {
-    config: {
-        name: "pin",
-        aliases: ["pinterest"],
-        version: "1.0",
-        author: "Dipto",
-        countDown: 15,
-        role: 0,
-        shortDescription: "Pinterest Image Search",
-        longDescription: "Pinterest Image Search",
-        category: "image",
-        guide: {
-            en: "{pn} query",
-        },
-    },
+  config: {
+    name: "pin",
+    aliases: ["pinterest"],
+    version: "1.7",
+    author: "MahMUD",
+    countDown: 10,
+    role: 0,
+    category: "image gen",
+    guide: { en: "{pn} query - amount\nExample: {pn} goku ultra - 10" }
+  },
 
-    onStart: async function ({ api, event, args }) {
-        const queryAndLength = args.join(" ").split("-");
-        const q = queryAndLength[0].trim();
-        const length = queryAndLength[1].trim();
+  onStart: async function ({ api, event, args, message }) {
+    const obfuscatedAuthor = String.fromCharCode(77, 97, 104, 77, 85, 68);
+    if (module.exports.config.author !== obfuscatedAuthor) {
+      return api.sendMessage(
+        "You are not authorized to change the author name.\n",
+        event.threadID,
+        event.messageID
+      );
+    }
 
-        if (!q || !length) {
-            return api.sendMessage(
-                "📛| Wrong Format",
-                event.threadID,
-                event.messageID,
-            );
-        }
+    try {
+      const queryAndLength = args.join(" ").split("-");
+      const keySearch = queryAndLength[0]?.trim();
+      const count = queryAndLength[1]?.trim();
+      const numberSearch = count ? Math.min(parseInt(count), 20) : 6;
 
-        try {
-            const w = await api.sendMessage("Please w8🦆", event.threadID);
-            const response = await axios.get(
-                `${await baseApiUrl()}/pinterest?search=${encodeURIComponent(q)}&limit=${encodeURIComponent(length)}`,
-            );
-            const data = response.data.data;
+      if (!keySearch) return message.reply("❌ | Please enter a search query.\nExample: goku ultra - 10");
 
-            if (!data || data.length === 0) {
-                return api.sendMessage(
-                    "Empty response or no images found.",
-                    event.threadID,
-                    event.messageID,
-                );
-            }
+      const apiUrl = await mahmud();
+      const response = await axios.get(
+        `${apiUrl}/api/pin?query=${encodeURIComponent(keySearch)}&limit=${numberSearch}`
+      );
 
-            const diptoo = [];
-            const totalImagesCount = Math.min(data.length, parseInt(length));
+      const data = response.data.images;
+      if (!data || data.length === 0) return message.reply("❌ | No images found for your query.");
 
-            for (let i = 0; i < totalImagesCount; i++) {
-                const imgUrl = data[i];
-                const imgResponse = await axios.get(imgUrl, {
-                    responseType: "arraybuffer",
-                });
-                const imgPath = path.join(
-                    __dirname,
-                    "dvassests",
-                    `${i + 1}.jpg`,
-                );
-                await fs.outputFile(imgPath, imgResponse.data);
-                diptoo.push(fs.createReadStream(imgPath));
-            }
+      const attachments = [];
+      for (let i = 0; i < data.length; i++) {
+        const imgUrl = data[i];
+        const imgRes = await axios.get(imgUrl, { responseType: "arraybuffer" });
+        const imgPath = path.join(__dirname, `temp_pin_${Date.now()}_${i}.jpg`);
+        await fs.outputFile(imgPath, imgRes.data);
+        attachments.push(fs.createReadStream(imgPath));
+      }
 
-            await api.unsendMessage(w.messageID);
-            await api.sendMessage(
-                {
-                    body: `
-🔎 | Here's your result for: 
-🦆 | Total Images Count: ${totalImagesCount}`,
-                    attachment: diptoo,
-                },
-                event.threadID,
-                event.messageID,
-            );
-        } catch (error) {
-            console.error(error);
-            await api.sendMessage(
-                `Error: ${error.message}`,
-                event.threadID,
-                event.messageID,
-            );
-        }
-    },
+      await message.reply({ body: `✅ | Here are your ${attachments.length} images for "${keySearch}"`, attachment: attachments });
+      attachments.forEach(att => fs.unlink(att.path, () => {}));
+
+    } catch (err) {
+      console.error(err);
+      return message.reply(`🥹error, contact MahMUD`);
+    }
+  }
 };
